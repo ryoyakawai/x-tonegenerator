@@ -28,11 +28,6 @@ var ToneGenerator=function(actx) {
     };
     this.voices =[
         { name: "piano_g",      file: "piano_garageband",   wav: null, mode: "N", len: 0, st: 0, lp: 0, a: 0, r: 0, pr: 1, gr: 0 },
-        { name: "piano2",       file: "piano2",   wav: null, mode: "N", len: 0, st: 0, lp: 0, a: 0, r: 0, pr: 1, gr: 0 },
-        { name: "Applaus",      file: "applause", wav: null, mode: "L", len: 0, st: 0, lp: 0, a: 0, r: 0, pr: 1, gr: 0 },
-        { name: "piano",        file: "piano",    wav: null, mode: "N", len: 0, st: 0, lp: 0, a: 0, r: 0, pr: 1, gr: 0 },
-        { name: "Opn High Hat", file: "ohh",      wav: null, mode: "N", len: 0, st: 0, lp: 0, a: 0, r: 0, pr: 1, gr: 1 },
-        { name: "Cabasa ",      file: "maracas",  wav: null, mode: "O", len: 0, st: 0, lp: 0, a: 0, r: 0, pr: 4, gr: 0 }
     ];
     this.que=null;
     this.oscs=null;
