@@ -396,26 +396,26 @@
                       req.open("GET", url, true);
                       req.responseType = "arraybuffer";
                       req.onload = function(event) {
-					                var res=req.response;
-					                var res8=new Uint8Array(res);
+                          var res=req.response;
+                          var res8=new Uint8Array(res);
                           var b=1;
-					                if(res8[0x22]==0x10) {
-						                  b=2;
+                          if(res8[0x22]==0x10) {
+                              b=2;
                           }
-					                var len=(res8.length-0x2c)>>(b-1);
-					                var wav=new Float32Array(len);
+                          var len=(res8.length-0x2c)>>(b-1);
+                          var wav=new Float32Array(len);
                           var v;
-					                for(var i=0x2c,j=0; j<len; i+=b,j++) {
-						                  if(b==2) {
-							                    v=((res8[i+1]&0xff)<<8)+(res8[i]&0xff);
-							                    if(v&0x8000) v=v-65536;
-							                    v=v/65536;
-						                  }
-						                  else {
-							                    v=((res8[i]&0xff)-128)/256;
-						                  }
-						                  wav[j]=v;
-					                }
+                          for(var i=0x2c,j=0; j<len; i+=b,j++) {
+                              if(b==2) {
+                                  v=((res8[i+1]&0xff)<<8)+(res8[i]&0xff);
+                                  if(v&0x8000) v=v-65536;
+                                  v=v/65536;
+                              }
+                              else {
+                                  v=((res8[i]&0xff)-128)/256;
+                              }
+                              wav[j]=v;
+                          }
                           callback(voice.file, wav, len);
                       };
                       req.send();

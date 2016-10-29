@@ -16,11 +16,11 @@
     "polymer": "Polymer/polymer#^1.7.0"
   },
   "homepage": "https://github.com/ryoyakawai/x-tonegenerator",
-  "_release": "fdc9e2619f",
+  "_release": "2f786e5967",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "fdc9e2619f203a9bf5ac56bbe030aef873630e29"
+    "commit": "2f786e59672f3949867f8a83f972663be8037f02"
   },
   "_source": "https://github.com/ryoyakawai/x-tonegenerator.git",
   "_target": "*",
