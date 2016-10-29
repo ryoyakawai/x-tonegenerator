@@ -1,0 +1,19 @@
+{
+  "name": "x-tonegenerator",
+  "version": "0.0.1",
+  "authors": [
+    "Ryoya Kawai"
+  ],
+  "description": "Tone Generator Powered by Web Audio in Polymer Element",
+  "license": "Apache2",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.7.0"
+  }
+}
