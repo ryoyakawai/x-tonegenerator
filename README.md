@@ -6,8 +6,7 @@
 This is a Polymer Element of "PCM Tone Generator" powered by Web Audio.
 
 ## Installation
-### Get component
-#### bower
+### bower
 ```shell
 $ bower install x-tonegenerator;
 ```
