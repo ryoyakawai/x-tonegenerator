@@ -1,0 +1,30 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
+    <link rel="import" href="bower_components/polymer/polymer-mini.html">
+    <link rel="import" href="bower_components/x-webmidi/x-webmidirequestaccess.html">
+    <link rel="import" href="x-tonegenerator.html">  
+
+    <x-tonegenerator id="tg" path="scripts/voices"></x-tonegenerator>
+    <x-webmidirequestaccess id="x-webmidi" sysex input output></x-webmidirequestaccess>
+    <div id="midiinput-area">
+      <div>MIDI INPUT:</div>
+      <div id="midiinput-select"><x-webmidiinput id="input-port"></x-webmidiinput></div>
+    </div>
+
+    <script>
+    var tg=document.querySelector("#tg");
+    window.addEventListener("midiin-event:input-port", function(event) {
+        switch(event.detail.data[0] & 0xf0) {
+            case 0x80:
+            case 0x90:
+                tg.send(event.detail.data);
+                break;
+        }
+    });
+   </script>
+
+  </body>
+</html>
