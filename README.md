@@ -1,6 +1,6 @@
 # x-tonegenerator
 ## Live Demo
-[https://ryoyakawai.github.io/x-tonegenerator/](https://ryoyakawai.github.io/x-tonegenerator/)
+[https://ryoyakawai.github.io/x-tonegenerator/](https://ryoyakawai.github.io/x-tonegenerator/)  
 (MIDI device is required to run this demo.)
 
 ## What is this?
