@@ -16,19 +16,24 @@ This sample code allow you to play Piano sound with clicking/tapping button in t
 ```html
 <html>
   <body>
+    <!-- importing x-tonegenerator, Polymer and polyfill of webcomponents -->
     <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
     <link rel="import" href="bower_components/polymer/polymer.html">
     <link rel="import" href="bower_components/x-tonegenerator/x-tonegenerator.html" >
 
+    <!-- activating x-tonegenerator -->
     <x-tonegenerator id="tg"></x-tonegenerator>
 
-    <button id="noteOn">noteOn</button>
+    <button id="play">Play</button>
 
     <script type="text/javascript">
      var tg=document.querySelector("#tg");
-     document.querySelector("#noteOn").addEventListener("mousedown", event => {
-         tg.noteOn( ["90", "50", "7f"] );
-         setTimeout(() => { tg.noteOff(["80", "50", "7f"]); }, 300)
+     var tg=document.querySelector("#tg");
+     document.querySelector("#play").addEventListener("mousedown", event => {
+         tg.noteOn(["90", "50", "7f"]);
+     });
+     document.querySelector("#play").addEventListener("mouseup", event => {
+         tg.noteOff(["80", "50", "00"]);
      });
     </script>
   </body>
