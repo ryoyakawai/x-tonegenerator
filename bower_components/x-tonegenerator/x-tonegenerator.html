@@ -374,10 +374,10 @@
                    return oscsObj;
                },
                LoadAllSamples: function(path2voices) {
-                   function callback(voice_file, wav, len) {
+                   function callback(voice, wav, len) {
                        this.audioconfig.voiceLoadedCount++;
                        for (var i = 0; i < this.voices.length; i++) {
-                           if (this.voices[i].file == voice_file) {
+                           if (this.voices[i].name == voice.name) {
                                this.voices[i].wav = wav;
                                if (this.voices[i].len == 0)
                                    this.voices[i].len = len;
@@ -413,7 +413,7 @@
                            }
                            wav[j]=v;
                        }
-                       callback(voice.file, wav, len);
+                       callback(voice, wav, len);
 
                        function _setWav(name, wav, len) {
                            console.log(name, wav, len);
