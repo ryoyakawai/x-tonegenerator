@@ -8,13 +8,16 @@
      }
      .whitek {
        margin: 0px; padding:4px;
-       width:30px; height:60px;
+       width:40px; height:80px;
        background-color:#ffffff;
-       border: 1px solid #000000;
+       border: 1px solid #cfcfcf;
        text-decoration: none;
        outline: 0px #ffffff solid;
        display: inline-block;
+       border-radius:2px;
      }
+     .fll { float:left }
+     p.item { margin: 10px }
     </style>
   </head>
   <body>
@@ -40,8 +43,8 @@
 
     <h3 class="next">Play by MIDI device</h3>
     <div id="midiinput-area">
-      <div>MIDI INPUT:</div>
-      <div id="midiinput-select"><x-webmidiinput id="input-port"></x-webmidiinput></div>
+      <div class="fll"><p class="item">MIDI INPUT:</p></div>
+      <div class="fll"><x-webmidiinput id="input-port"></x-webmidiinput></div>
     </div>
 
     <script type="text/javascript">
