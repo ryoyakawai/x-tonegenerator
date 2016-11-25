@@ -1,21 +1,78 @@
 <html>
   <head>
+    <style>
+     body { font-family:arial }
+     h3.next {
+       margin-top:30px;
+       margin-bottom:10px;
+     }
+     .whitek {
+       margin: 0px; padding:4px;
+       width:30px; height:60px;
+       background-color:#ffffff;
+       border: 1px solid #000000;
+       text-decoration: none;
+       outline: 0px #ffffff solid;
+       display: inline-block;
+     }
+    </style>
   </head>
   <body>
-    <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
-    <link rel="import" href="bower_components/polymer/polymer-mini.html">
+    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="bower_components/polymer/polymer.html">
     <link rel="import" href="bower_components/x-webmidi/x-webmidirequestaccess.html">
-    <link rel="import" href="bower_components/x-tonegenerator/x-tonegenerator.html">  
-
-    <x-tonegenerator id="tg" path="voices"></x-tonegenerator>
+    <link rel="import" href="bower_components/x-tonegenerator/x-tonegenerator.html" >
+    
     <x-webmidirequestaccess id="x-webmidi" sysex input output></x-webmidirequestaccess>
+    <x-tonegenerator id="tg"></x-tonegenerator>
+
+    <h2>x-tonegenerator Demo Page</h2>
+
+    <h3>Play by Button</h3>
+    <button id="playc4" value="3c" class="whitek">Do</button>
+    <button id="playd4" value="3e" class="whitek">Re</button>
+    <button id="playe4" value="40" class="whitek">Mi</button>
+    <button id="playf4" value="41" class="whitek">Fa</button>
+    <button id="playg4" value="43" class="whitek">So</button>
+    <button id="playa4" value="45" class="whitek">Ra</button>
+    <button id="playb4" value="47" class="whitek">Si</button>
+    <button id="playc5" value="48" class="whitek">Do</button>
+
+    <h3 class="next">Play by MIDI device</h3>
     <div id="midiinput-area">
       <div>MIDI INPUT:</div>
       <div id="midiinput-select"><x-webmidiinput id="input-port"></x-webmidiinput></div>
     </div>
 
-    <script>
-    var tg=document.querySelector("#tg");
+    <script type="text/javascript">
+     var tg=document.querySelector("#tg");
+     document.querySelector("#playc4").addEventListener("mousedown", playSound);
+     document.querySelector("#playc4").addEventListener("mouseup",   stopSound);
+     document.querySelector("#playd4").addEventListener("mousedown", playSound);
+     document.querySelector("#playd4").addEventListener("mouseup",   stopSound);
+     document.querySelector("#playe4").addEventListener("mousedown", playSound);
+     document.querySelector("#playe4").addEventListener("mouseup",   stopSound);
+     document.querySelector("#playf4").addEventListener("mousedown", playSound);
+     document.querySelector("#playf4").addEventListener("mouseup",   stopSound);
+     document.querySelector("#playg4").addEventListener("mousedown", playSound);
+     document.querySelector("#playg4").addEventListener("mouseup",   stopSound);
+     document.querySelector("#playa4").addEventListener("mousedown", playSound);
+     document.querySelector("#playa4").addEventListener("mouseup",   stopSound);
+     document.querySelector("#playb4").addEventListener("mousedown", playSound);
+     document.querySelector("#playb4").addEventListener("mouseup",   stopSound);
+     document.querySelector("#playc5").addEventListener("mousedown", playSound);
+     document.querySelector("#playc5").addEventListener("mouseup",   stopSound);
+     function playSound(event) {
+         var note=event.target.value;
+         tg.noteOn(["90", note, "7f"]);
+         event.target.style.setProperty("background-color", "#dddddd");
+     }
+     function stopSound(event) {
+         var note=event.target.value;
+         tg.noteOff(["80", note, "00"]);
+         event.target.style.setProperty("background-color", "#ffffff");
+    }
+
     window.addEventListener("midiin-event:input-port", function(event) {
         switch(event.detail.data[0] & 0xf0) {
             case 0x80:
@@ -24,7 +81,6 @@
                 break;
         }
     });
-   </script>
-
+    </script>
   </body>
 </html>
