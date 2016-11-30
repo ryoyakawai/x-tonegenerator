@@ -1,5 +1,6 @@
 {
     "path":"bower_components/x-tonegenerator/voices",
     "list":[
-        { "name":"piano_g", "file":"piano", "wav":null, "mode":"N", "len":0, "st":0, "lp":0, "a":0, "r":0.90, "pr":1, "gr":0 }    ]
+        { "name":"piano_g", "noteno":60, "file":"piano", "wav":null, "mode":"N", "len":0, "st":0, "lp":0, "a":0, "r":0.90, "pr":1, "gr":0 }
+    ]
 }

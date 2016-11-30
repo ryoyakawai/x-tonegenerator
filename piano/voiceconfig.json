@@ -1,0 +1,10 @@
+{
+    "path":"voices",
+    "list":[
+        { "name":"piano021", "noteno":21, "file":"piano021_2.7", "wav":null, "mode":"N", "len":0, "st":0, "lp":0, "a":0, "r":0.90, "pr":1, "gr":0 },
+        { "name":"piano045", "noteno":45, "file":"piano045_2.7", "wav":null, "mode":"N", "len":0, "st":0, "lp":0, "a":0, "r":0.90, "pr":1, "gr":0 },
+        { "name":"piano069", "noteno":69, "file":"piano069_2.7", "wav":null, "mode":"N", "len":0, "st":0, "lp":0, "a":0, "r":0.90, "pr":1, "gr":0 },
+        { "name":"piano093", "noteno":93, "file":"piano093_2.7", "wav":null, "mode":"N", "len":0, "st":0, "lp":0, "a":0, "r":0.90, "pr":1, "gr":0 },
+        { "name":"piano117", "noteno":117, "file":"piano117_3.2", "wav":null, "mode":"N", "len":0, "st":0, "lp":0, "a":0, "r":0.90, "pr":1, "gr":0 }
+    ]
+}

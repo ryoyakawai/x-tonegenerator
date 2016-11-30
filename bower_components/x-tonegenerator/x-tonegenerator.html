@@ -20,14 +20,9 @@
   <script>
   // element registration
   Polymer({
-       
        is: "x-tonegenerator",
-       
-       // add properties and methods on the element's prototype
-       
        properties: {
-           // declare properties for the element's public API
-           pathToVoiceConfig: {
+           config: {
                type: String,
                value: "bower_components/x-tonegenerator/voiceconfig.json"
            },
@@ -39,6 +34,21 @@
            }
            msg.unshift("midi");
            this.tg.que.Push(msg);
+       },
+       getVoiceConfig: function() {
+           return this.tg.voices;
+       },
+       setVoice: function(ch, voiceName) {
+           var voiceNo=0;
+           for(var i=0; i<this.tg.voices.length; i++) {
+               if(this.tg.voices[i].name==voiceName) {
+                   voiceIdx=i;
+                   break;
+               }
+           }
+           this.tg.channels[ch].setVoiceNo(voiceIdx);
+           console.info("Set Ch="+ch+" voice to \""+voiceName+"\"");
+           return voiceIdx;
        },
        noteOn: function(data) {
            this.send(data);
@@ -80,6 +90,7 @@
                            self.audio.Start();
                        }
                    });
+                   console.info("[Voice Config Location] ", this.path2voices);
                },
                _fireHTMLEvent: function(name) {
                    var event=document.createEvent("HTMLEvents");
@@ -124,7 +135,7 @@
                                                self.channels[ch].Volume(parseInt(d.msg[3], 16));
                                                break;
                                            case 10:
-                                               self.channels[ch].updatePan(parseInt(d.msg[3], 16));
+                                               self.channels[ch].setPan(parseInt(d.msg[3], 16));
                                                break;
                                            case 0x78:
                                                self.channels[ch].allSoundOff();
@@ -135,7 +146,7 @@
                                        }
                                        break;
                                    case 0xc0:
-                                       self.channels[ch].updateVoiceNo(parseInt(d.msg[2], 16));
+                                       self.channels[ch].setVoiceNo(parseInt(d.msg[2], 16));
                                        break;
                                    case 0xe0:
                                        self.channels[ch].updateBend(parseInt(d.msg[2], 16) + (parseInt(d.msg[3], 16) << 7) - 8192);
@@ -158,21 +169,21 @@
                            this.volume=0.8;
                            this.bend=0;
                            this.pan=0.5; // L:0, C:0.5, R:1.0
-                           this.updateVoiceNo=function(value) {
+                           this.setVoiceNo=function(value) {
                                this.voiceNo=value;
                            };
-                           this.updateVolume=function(value) {
+                           this.setVolume=function(value) {
                                this.volume=value/127;
                            };
-                           this.updateGain=function(value) {
+                           this.setGain=function(value) {
                                this.gain=value/127;
                            };
-                           this.updatePan=function(value) {
+                           this.setPan=function(value) {
                                // value: 0-127
                                console.info("[Pan is not acticated.]");
                                this.pan=value/127;
                            };
-                           this.updateBend=function(value) {
+                           this.setBend=function(value) {
                                // value: 0-127
                                this.bend=value / 8192;
                            };
@@ -183,9 +194,9 @@
                            };
                            this.resetAllControl=function() {
                                for(var i=0; i<self.audioconfig.channelCount; i++) {
-                                   this.updateVolume(100);
-                                   this.updatePan(64);
-                                   this.updateBend(0);
+                                   this.setVolume(100);
+                                   this.setPan(64);
+                                   this.setBend(0);
                                }
                            };
                        }
@@ -306,8 +317,9 @@
                                this.delta=0;
                                // if(ch==0) // ommit
                                this.voice=self.voices[self.channels[this.ch].voiceNo];
+                               var baseFreq=440/(440 * Math.pow(2, (this.voice.noteno - 69) / 12));
                                this.gr=this.voice.gr;
-                               this.delta=(44100 * Math.pow(2, (this.note - 69) / 12)) / self.audioconfig.sampleRate * this.voice.pr;
+                               this.delta=baseFreq*(44100 * Math.pow(2, (this.note - 69) / 12)) / self.audioconfig.sampleRate * this.voice.pr;
                                this.phase=this.voice.st;
                                this.trig=1;
                            } else {
@@ -321,7 +333,6 @@
                                } else {
                                    this.lv +=(1-this.lv) * (1 - this.voice.a); // attack
                                }
-                               
                            } else {
                                if(this.lv < 0.01) {
                                    this.lv=0;
@@ -345,12 +356,13 @@
                            }
                            if(this.enable > 0) {
                                var wave=this.voice.wav;
+                               var len=this.voice.len;
                                if(wave) {
                                    this.phase += this.delta; 
-                                   if(this.phase >= this.voice.len) {
+                                   if(this.phase >= len) {
                                        switch(this.voice.mode) {
                                            case "L":
-                                               this.phase -= (this.voice.len - this.voice.lp); 
+                                               this.phase -= (len - this.voice.lp); 
                                                break;
                                            case "O":
                                            case "N":
@@ -379,13 +391,12 @@
                        for (var i = 0; i < this.voices.length; i++) {
                            if (this.voices[i].name == voice.name) {
                                this.voices[i].wav = wav;
-                               if (this.voices[i].len == 0)
-                                   this.voices[i].len = len;
+                               if (this.voices[i].len == 0) this.voices[i].len = len;
                            }
                        }
                        console.info("[Voice Loaded: " + parseInt(100*(this.audioconfig.voiceLoadedCount/this.voices.length)) + "%]");
                    }
-                   for(var i=0; i<this.voices.length; i++) {
+                   for(var i=0; i<this.voices.length; i++) { 
                        this._LoadSample(this.voices[i], path2voices, callback.bind(this));
                    }
                },
@@ -414,21 +425,45 @@
                            wav[j]=v;
                        }
                        callback(voice, wav, len);
-
-                       function _setWav(name, wav, len) {
-                           console.log(name, wav, len);
-                       }
                    });
-               },
+                   function _fetchfile(voice, url, callback) {
+                       fetch(url).then( res => {
+                           return res.arrayBuffer();
+                       }).then( buf => {
+                           var buf8=new Uint8Array(buf);
+                           var b=1;
+                           if(buf8[0x22]==0x10) {
+                               b=2;
+                           }
+                           var len=(buf8.length-0x2c)>>(b-1);
+                           var wav=new Float32Array(len);
+                           var v;
+                           for(var i=0x2c,j=0; j<len; i+=b,j++) {
+                               if(b==2) {
+                                   v=((buf8[i+1]&0xff)<<8)+(buf8[i]&0xff);
+                                   if(v&0x8000) v=v-65536;
+                                   v=v/65536;
+                               }
+                               else {
+                                   v=((buf8[i]&0xff)-128)/256;
+                               }
+                               wav[j]=v;
+                           }
+                           callback(voice, wav, len);
+                       });
+                   }
+
+               }
            }; // var ToneGenerator=function(actx, path) {
 
            // create object of tonegenerator
-           fetch( this.pathToVoiceConfig ).then( res => {
+           fetch( this.config ).then( res => {
                return res.json();
            }).then( voiceConfig => {
                if(voiceConfig.path.substr(-1)!="/") voiceConfig.path=voiceConfig.path+"/";
                this.tg=new ToneGenerator( new AudioContext(), voiceConfig.path, voiceConfig.list );
                this.tg.init();
+               this.fire("tg-ready");
            });
 
        } // ToneGenerator.prototype {

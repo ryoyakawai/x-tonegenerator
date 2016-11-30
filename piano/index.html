@@ -11,15 +11,15 @@
     </style>
   </head>
   <body>
-    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-    <link rel="import" href="bower_components/polymer/polymer.html">
-    <link rel="import" href="bower_components/x-webmidi/x-webmidirequestaccess.html">
-    <link rel="import" href="bower_components/x-tonegenerator/x-tonegenerator.html" >
-    <link rel="import" href="bower_components/x-tonegenerator/x-keys.html" >
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="../bower_components/x-webmidi/x-webmidirequestaccess.html">
+    <link rel="import" href="../bower_components/x-tonegenerator/x-tonegenerator.html" >
+    <link rel="import" href="../bower_components/x-tonegenerator/x-keys.html" >
     
     <x-webmidirequestaccess id="x-webmidi" sysex input output></x-webmidirequestaccess>
     <x-tonegenerator id="tg" config="./voiceconfig.json"></x-tonegenerator>
-    <h2>x-tonegenerator Demo Page</h2>
+    <h2>Piano</h2>
 
     <h3>Play by Button</h3>
     <x-keys id="xkeys"></x-keys>
@@ -30,28 +30,41 @@
       <div class="fll"><x-webmidiinput id="input-port"></x-webmidiinput></div>
     </div>
 
+    <script type="text/javascript" src="scripts/piano.js"></script>
+
     <script type="text/javascript">
      var tg=document.querySelector("#tg");
      tg.addEventListener("tg-ready", (event) => {
-         tg.setVoice(0, "piano_g");
+         piano.init();
      });
-
 
      var xk=document.querySelector("#xkeys");
      xk.addEventListener("noteOn", (event) => {
-         tg.noteOn(event.detail);
+         sendMsg(event.detail);
      });
      var xk=document.querySelector("#xkeys");
      xk.addEventListener("noteOff", (event) => {
-         tg.noteOff(event.detail);
+         sendMsg(event.detail);
      });
 
-
-    window.addEventListener("midiin-event:input-port", function(event) {
+     function sendMsg(msg) {
+         var vm=piano.getVelocitiesByNoteNo(msg[1]);
+         var out=[];
+         for(var i=0; i<vm.length; i++) {
+             if(vm[i]>0) {
+                 out.push([msg[0]+i, msg[1], parseInt(vm[i]*msg[2]/127)]);
+             }
+         }
+         while(out.length>0) {
+             tg.send(out.shift());
+         }
+     }
+     
+     window.addEventListener("midiin-event:input-port", function(event) {
         switch(event.detail.data[0] & 0xf0) {
             case 0x80:
             case 0x90:
-                tg.send(event.detail.data);
+                sendMsg(event.detail.data);
                 break;
         }
     });
