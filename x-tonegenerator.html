@@ -20,14 +20,9 @@
   <script>
   // element registration
   Polymer({
-       
        is: "x-tonegenerator",
-       
-       // add properties and methods on the element's prototype
-       
        properties: {
-           // declare properties for the element's public API
-           pathToVoiceConfig: {
+           config: {
                type: String,
                value: "bower_components/x-tonegenerator/voiceconfig.json"
            },
@@ -40,16 +35,20 @@
            msg.unshift("midi");
            this.tg.que.Push(msg);
        },
+       getVoiceConfig: function() {
+           return this.tg.voices;
+       },
        setVoice: function(ch, voiceName) {
            var voiceNo=0;
            for(var i=0; i<this.tg.voices.length; i++) {
                if(this.tg.voices[i].name==voiceName) {
-                   voiceNo=i;
+                   voiceIdx=i;
                    break;
                }
            }
-           this.tg.channels[0].setVoiceNo(voiceNo);
+           this.tg.channels[ch].setVoiceNo(voiceIdx);
            console.info("Set Ch="+ch+" voice to \""+voiceName+"\"");
+           return voiceIdx;
        },
        noteOn: function(data) {
            this.send(data);
@@ -91,6 +90,7 @@
                            self.audio.Start();
                        }
                    });
+                   console.info("[Voice Config Location] ", this.path2voices);
                },
                _fireHTMLEvent: function(name) {
                    var event=document.createEvent("HTMLEvents");
@@ -317,8 +317,9 @@
                                this.delta=0;
                                // if(ch==0) // ommit
                                this.voice=self.voices[self.channels[this.ch].voiceNo];
+                               var baseFreq=440/(440 * Math.pow(2, (this.voice.noteno - 69) / 12));
                                this.gr=this.voice.gr;
-                               this.delta=(44100 * Math.pow(2, (this.note - 69) / 12)) / self.audioconfig.sampleRate * this.voice.pr;
+                               this.delta=baseFreq*(44100 * Math.pow(2, (this.note - 69) / 12)) / self.audioconfig.sampleRate * this.voice.pr;
                                this.phase=this.voice.st;
                                this.trig=1;
                            } else {
@@ -456,7 +457,7 @@
            }; // var ToneGenerator=function(actx, path) {
 
            // create object of tonegenerator
-           fetch( this.pathToVoiceConfig ).then( res => {
+           fetch( this.config ).then( res => {
                return res.json();
            }).then( voiceConfig => {
                if(voiceConfig.path.substr(-1)!="/") voiceConfig.path=voiceConfig.path+"/";
