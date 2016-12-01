@@ -16,60 +16,180 @@
 <dom-module id="x-keys">
   <template>
     <style>
-     .whitek {
-       margin: 0px; padding:4px;
-       width:40px; height:80px;
+     .keyarea { width: 385px; margin-bottom:5px }
+     .keyareab {
+       width: 385px; margin-bottom:5px;
+       margin-left:20px;
+     }
+     .octarea {
+       width:385px;
+       margin:10px 10px 10px 100px;
+       height: 40px;
+     }
+     .octb {
+       color:;
+       margin: 0 3px; padding: 4px;
+       width: 40px; height: 40px;
+       border-radius:50%;
        background-color:#ffffff;
        border: 1px solid #cfcfcf;
+       outline: 0px #ffffff solid;
+       float: left;
+     }
+     .octn {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       margin: 0px; padding: 4px;
+       width: 30px; height: 30px;
+       border-radius:10%;
+       background-color:#ffffff;
+       border: 1px solid #cfcfcf;
+       outline: 0px #ffffff solid;
+       float:left;
+     }
+     .key {
+       margin: 0px; padding:4px;
+       width:40px; height:80px;
        text-decoration: none;
        outline: 0px #ffffff solid;
        display: inline-block;
        border-radius:2px;
      }
+     .white {
+       background-color:#ffffff;
+       border: 1px solid #cfcfcf;
+     }
+     .black {
+       background-color:#cfcfcf;
+       border: 1px solid #cfcfcf;
+     }
+     .fas { margin-left:48px;}
      .fll { float:left }
+     .clb { clear:both; }
     </style>
-    <button id="playc4" value="3c" class="whitek">Do</button>
-    <button id="playd4" value="3e" class="whitek">Re</button>
-    <button id="playe4" value="40" class="whitek">Mi</button>
-    <button id="playf4" value="41" class="whitek">Fa</button>
-    <button id="playg4" value="43" class="whitek">So</button>
-    <button id="playa4" value="45" class="whitek">Ra</button>
-    <button id="playb4" value="47" class="whitek">Si</button>
-    <button id="playc5" value="48" class="whitek">Do</button>
+    <div class="octarea">
+      <div><button id="od" class="octb">-</button></div>
+      <div class="octn">{{octave}}</div>
+      <div><button id="ou"class="octb">+</button></div>
+    </div>
+    <div class="clb"></div>
+    <div id="keyareab" class="keyareab">
+      <button id="playc4s" value="61" class="key black"></button>
+      <button id="playd4s" value="63" class="key black"></button>
+      <button id="playf4s" value="66" class="key black fas"></button>
+      <button id="playg4s" value="68" class="key black"></button>
+      <button id="playa4s" value="70" class="key black"></button>
+    </div>
+    <div id="keyarea" class="keyarea">
+      <button id="playc4" value="60" class="key white">Do</button>
+      <button id="playd4" value="62" class="key white">Re</button>
+      <button id="playe4" value="64" class="key white">Mi</button>
+      <button id="playf4" value="65" class="key white">Fa</button>
+      <button id="playg4" value="67" class="key white">So</button>
+      <button id="playa4" value="69" class="key white">Ra</button>
+      <button id="playb4" value="71" class="key white">Si</button>
+      <button id="playc5" value="72" class="key white">Do</button>
+    </div>
   </template>
   <script>
   Polymer({
        is: "x-keys",
-       properties: {},
+       properties: {
+           octave: {
+               type: Number,
+               value: 4
+           },
+           keyMap : {
+               type:Array,
+               value: ["playc4", "playc4s", "playd4", "playd4s", "playe4", 
+                       "playf4", "playf4s", "playg4", "playg4s", "playa4", 
+                       "playa4s", "playb4", "playc5"]
+           }
+      },
        ready: function() {
-           this.$["playc4"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playc4"].addEventListener("mouseup",   this.stopSound.bind(this));
-           this.$["playd4"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playd4"].addEventListener("mouseup",   this.stopSound.bind(this));
-           this.$["playe4"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playe4"].addEventListener("mouseup",   this.stopSound.bind(this));
-           this.$["playf4"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playf4"].addEventListener("mouseup",   this.stopSound.bind(this));
-           this.$["playg4"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playg4"].addEventListener("mouseup",   this.stopSound.bind(this));
-           this.$["playa4"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playa4"].addEventListener("mouseup",   this.stopSound.bind(this));
-           this.$["playb4"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playb4"].addEventListener("mouseup",   this.stopSound.bind(this));
-           this.$["playc5"].addEventListener("mousedown", this.playSound.bind(this));
-           this.$["playc5"].addEventListener("mouseup",   this.stopSound.bind(this));
+           var wt=this.$["keyarea"].children;
+           var bk=this.$["keyareab"].children;
+           var children=[];
+           for(var i=0; i<wt.length; i++) children.push(wt[i]);
+           for(var i=0; i<bk.length; i++) if(bk[i].id!="")children.push(bk[i]);
+           for(var i=0; i<children.length; i++) {
+               if(children[i].id.match(/^play/)!==null) {
+                   this.$[children[i].id].addEventListener("mousedown", this.playSound.bind(this));
+                   this.$[children[i].id].addEventListener("mouseup",   this.stopSound.bind(this));
+                   this.$[children[i].id].addEventListener("touchstart", this.playSound.bind(this));
+                   this.$[children[i].id].addEventListener("touchend",   this.stopSound.bind(this));
+               }
+           }
+           var tagId=["od", "ou"];
+           for(var i=0; i<tagId.length; i++) {
+               this.$[tagId[i]].addEventListener("mousedown", this.updateOct.bind(this));
+               this.$[tagId[i]].addEventListener("mouseup", this.removeC.bind(this));
+               this.$[tagId[i]].addEventListener("touchstart", this.updateOct.bind(this));
+               this.$[tagId[i]].addEventListener("touchend", this.removeC.bind(this));
+           }
+       },
+       updateCbyM: function(event) {
+           var msg=event.detail.data;
+           var mKey=msg[1]%12; 
+           var mOct=Math.floor(msg[1]/12)-1;
+           var e={target:null};
+           if(mOct==this.octave+1 && mKey==0) {
+               mOct-=1;
+               mKey=12;
+               console.log(msg[1], mKey, mOct, this.octave);
+           }
+           e.target=this.$[this.keyMap[mKey]];
+           if(mOct==this.octave) {
+               if(msg[0]===0x80) {
+                   this.removeC(e);
+               }
+               if(msg[0]===0x90) {
+                   this.addC(e);
+               }
+           }
+       },
+       addC: function(event) {
+           event.target.style.setProperty("background-color", "#dddddd");
+           event.target.style.setProperty("border-color", "#dddddd");
+           event.target.style.setProperty("color", "#ffffff");
+       },
+       removeC: function(event) {
+           event.target.style.removeProperty("background-color");
+           event.target.style.removeProperty("border-color");
+           event.target.style.removeProperty("color");
+       },
+       updateOct: function(event) {
+           var type=event.target.id;
+           switch(type) {
+               case "od":
+                   if(this.octave>0) this.octave=this.octave-1;
+                   break;
+               case "ou":
+                   if(this.octave<8) this.octave+=1;
+                   break;
+           }
+           this.addC(event);
+           event.preventDefault();
+           event.stopPropagation(); 
+       },
+       getOctave: function() {
+           return 12*(this.octave-4);
        },
        playSound: function(event) {
-         var note=event.target.value;
-         this.fire("noteOn", [0x90, parseInt(note, 16), 0x7f]);
-         event.target.style.setProperty("background-color", "#dddddd");
-       },
+           var note=parseInt(event.target.value)+this.getOctave();
+           this.fire("noteOn", [0x90, note, 0x7f]);
+           this.addC(event);
+           event.preventDefault();
+           event.stopPropagation(); 
+      },
        stopSound: function(event) {
-         var note=event.target.value;
-         this.fire("noteOff", [0x80, parseInt(note, 16), 0x7f]);
-         event.target.style.setProperty("background-color", "#ffffff");
+           var note=parseInt(event.target.value)+this.getOctave();
+           this.fire("noteOff", [0x80, note, 0x7f]);
+           this.removeC(event);
+           event.preventDefault();
+           event.stopPropagation(); 
        }
-       
    });
   </script>
 </dom-module>
