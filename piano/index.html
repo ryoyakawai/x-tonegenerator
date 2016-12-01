@@ -1,7 +1,9 @@
+<!doctype html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-     body { font-family:arial }
+     body { font-family:arial; }
      h3.next {
        margin-top:30px;
        margin-bottom:10px;
@@ -17,7 +19,7 @@
     <link rel="import" href="../bower_components/x-tonegenerator/x-tonegenerator.html" >
     <link rel="import" href="../bower_components/x-tonegenerator/x-keys.html" >
     
-    <x-webmidirequestaccess id="x-webmidi" sysex input output></x-webmidirequestaccess>
+    <x-webmidirequestaccess id="x-webmidi" input output></x-webmidirequestaccess>
     <x-tonegenerator id="tg" config="./voiceconfig.json"></x-tonegenerator>
     <h2>Piano</h2>
 
@@ -64,6 +66,7 @@
         switch(event.detail.data[0] & 0xf0) {
             case 0x80:
             case 0x90:
+                xk.updateCbyM(event);
                 sendMsg(event.detail.data);
                 break;
         }
