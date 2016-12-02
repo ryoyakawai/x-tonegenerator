@@ -49,14 +49,14 @@
      });
 
 
-    window.addEventListener("midiin-event:input-port", function(event) {
-        switch(event.detail.data[0] & 0xf0) {
-            case 0x80:
-            case 0x90:
-                tg.send(event.detail.data);
-                break;
-        }
-    });
+     window.addEventListener("midiin-event:input-port", function(event) {
+         switch(event.detail.data[0] & 0xf0) {
+             case 0x80:
+             case 0x90:
+                 tg.send(event.detail.data);
+                 break;
+         }
+     });
     </script>
   </body>
 </html>

@@ -33,7 +33,6 @@
     </div>
 
     <script type="text/javascript" src="scripts/piano.js"></script>
-
     <script type="text/javascript">
      var tg=document.querySelector("#tg");
      tg.addEventListener("tg-ready", (event) => {
@@ -63,14 +62,28 @@
      }
      
      window.addEventListener("midiin-event:input-port", function(event) {
-        switch(event.detail.data[0] & 0xf0) {
-            case 0x80:
-            case 0x90:
-                xk.updateCbyM(event);
-                sendMsg(event.detail.data);
-                break;
-        }
-    });
+         switch(event.detail.data[0] & 0xf0) {
+             case 0x80:
+             case 0x90:
+                 xk.updateCbyM(event);
+                 sendMsg(event.detail.data);
+                 break;
+         }
+     });
+     
+     window.addEventListener("message", webMidiLinkRecv, false);
+     function webMidiLinkRecv(event) {
+         var msg = event.data.split(",");
+         msg[1]=msg[1].substr(0,1)+"0";
+         if (msg[0]=="midi") {
+             switch (parseInt(msg[1], 16) & 0xf0) {
+                 case 0x80:
+                 case 0x90:
+                     sendMsg([parseInt(msg[1],16), parseInt(msg[2],16), parseInt(msg[3],16)] );
+                     break;
+             }
+         }
+     }
     </script>
   </body>
 </html>
