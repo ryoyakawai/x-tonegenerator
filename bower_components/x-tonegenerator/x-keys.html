@@ -111,6 +111,7 @@
            var wt=this.$["keyarea"].children;
            var bk=this.$["keyareab"].children;
            var isMousedown=false;
+           document.addEventListener("mouseup", ()=>{ isMousedown=false; });
            var children=[];
            for(var i=0; i<wt.length; i++) children.push(wt[i]);
            for(var i=0; i<bk.length; i++) if(bk[i].id!="")children.push(bk[i]);
@@ -118,7 +119,7 @@
                if(children[i].id.match(/^play/)!==null) {
                    this.$[children[i].id].addEventListener("mousedown", ()=>{ if(isMousedown===false) isMousedown=true; });
                    this.$[children[i].id].addEventListener("mouseup",   ()=>{ if(isMousedown===true) isMousedown=false; });
-                   this.$[children[i].id].addEventListener("mouseout",  ()=>{ if(isMousedown===true) this.stopSound.bind(this); });
+                   this.$[children[i].id].addEventListener("mouseout",  ()=>{ if(isMousedown===true) this.stopSound.bind(this)(event); });
                    this.$[children[i].id].addEventListener("mouseover", (event)=>{
                        if(isMousedown===true) this.playSound.bind(this)(event); 
                    });
