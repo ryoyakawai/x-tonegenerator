@@ -1,6 +1,6 @@
 {
   "name": "x-tonegenerator",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "authors": [
     "Ryoya Kawai"
   ],
@@ -17,14 +17,14 @@
     "polymer": "Polymer/polymer#^1.7.0"
   },
   "homepage": "https://github.com/ryoyakawai/x-tonegenerator",
-  "_release": "0.0.8",
+  "_release": "0.0.9",
   "_resolution": {
     "type": "version",
-    "tag": "v0.0.8",
-    "commit": "ed4f69c782ba3db3ea040fa8b54e4da46d63e149"
+    "tag": "v0.0.9",
+    "commit": "99eb4db676dc73308765db44178365487638111a"
   },
   "_source": "https://github.com/ryoyakawai/x-tonegenerator.git",
-  "_target": "^0.0.8",
+  "_target": "^0.0.9",
   "_originalSource": "x-tonegenerator",
   "_direct": true
 }

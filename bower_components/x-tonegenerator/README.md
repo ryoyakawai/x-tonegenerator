@@ -28,7 +28,6 @@ This sample code allow you to play Piano sound with clicking/tapping button in t
 
     <script type="text/javascript">
      var tg=document.querySelector("#tg");
-     var tg=document.querySelector("#tg");
      document.querySelector("#play").addEventListener("mousedown", event => {
          tg.noteOn(["90", "50", "7f"]);
      });
