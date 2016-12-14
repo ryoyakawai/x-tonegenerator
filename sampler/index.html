@@ -58,11 +58,11 @@
      });
 
      const rd=document.querySelector("#recorder");
-     rd.addEventListener("record-stop", (event) =>{
+     rd.addEventListener("record-stop", (event) => {
          num++;
          const buf=rd.getAudioBuffer();
          tg.setInstantVoicebByFloat32Array("test_"+num, 60, buf.Float32Array.data);
-         tg.setVoice(0, "test_"+num);
+         tg.setVoice(0, "test_"+num)
      });
 
      window.addEventListener("midiin-event:input-port", function(event) {
