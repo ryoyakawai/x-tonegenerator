@@ -247,6 +247,7 @@
                this.data={raw: this.audioBuf, audioBuffer: buf, Float32Array: {stat: stat, data:chData} };
                cancelAnimationFrame(this.animationId);
                this.drawRecordedWave(this.data.Float32Array);
+               this.fire("record-stop");
            }
        },
        getAudioBuffer: function() {
