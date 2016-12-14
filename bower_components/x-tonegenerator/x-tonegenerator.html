@@ -39,7 +39,7 @@
            return this.tg.voices;
        },
        setVoice: function(ch, voiceName) {
-           var voiceNo=0;
+           var voiceIdx=0;
            for(var i=0; i<this.tg.voices.length; i++) {
                if(this.tg.voices[i].name==voiceName) {
                    voiceIdx=i;
@@ -55,6 +55,20 @@
        },
        noteOff: function(data) {
            this.send(data);
+       },
+       setInstantVoicebByFloat32Array: function(name, noteno, float32Array) {
+           var voice={ 
+               "name":name, "noteno":noteno, "wav":null, 
+               "mode":"L", "len":0, "st":0, "lp":0, "a":0, 
+               "r":0.90, "pr":1, "gr":0 };
+           voice.name=name;
+           voice.noteno=60;
+           voice.len=float32Array.length;
+           voice.lp=parseInt(0.2*voice.len);
+           voice.wav=[];
+           voice.wav=float32Array;
+           this.tg.voices.push(voice);
+           return {idx: this.tg.voices.length-1};
        },
        ready: function() {
            var ToneGenerator=function(actx, path, voiceList) {
@@ -385,73 +399,52 @@
                    }
                    return oscsObj;
                },
-               LoadAllSamples: function(path2voices) {
-                   function callback(voice, wav, len) {
-                       this.audioconfig.voiceLoadedCount++;
-                       for (var i = 0; i < this.voices.length; i++) {
-                           if (this.voices[i].name == voice.name) {
-                               this.voices[i].wav = wav;
-                               if (this.voices[i].len == 0) this.voices[i].len = len;
-                           }
+               pushSample: function(voice, wav, len) {
+                   this.audioconfig.voiceLoadedCount++;
+                   for (var i = 0; i < this.voices.length; i++) {
+                       if (this.voices[i].name == voice.name) {
+                           this.voices[i].wav = wav;
+                           if (this.voices[i].len == 0) this.voices[i].len = len;
                        }
-                       console.info("[Voice Loaded: " + parseInt(100*(this.audioconfig.voiceLoadedCount/this.voices.length)) + "%]");
                    }
+                   console.info("[Voice Loaded: " + parseInt(100*(this.audioconfig.voiceLoadedCount/this.voices.length)) + "%]");
+                   return {id: this.audioconfig.voiceLoadedCount, voice: voice};
+               },
+               LoadAllSamples: function(path2voices) {
                    for(var i=0; i<this.voices.length; i++) { 
-                       this._LoadSample(this.voices[i], path2voices, callback.bind(this));
+                       this._LoadSample(this.voices[i], path2voices, this.pushSample.bind(this));
                    }
+               },
+               convertArrayBufferToFloat32Array: function(buffer) {
+                   var buf8=new Uint8Array(buffer);
+                   var b=1;
+                   if(buf8[0x22]==0x10) {
+                       b=2;
+                   }
+                   var len=(buf8.length-0x2c)>>(b-1);
+                   var wav=new Float32Array(len);
+                   var v;
+                   for(var i=0x2c,j=0; j<len; i+=b,j++) {
+                       if(b==2) {
+                           v=((buf8[i+1]&0xff)<<8)+(buf8[i]&0xff);
+                           if(v&0x8000) v=v-65536;
+                           v=v/65536;
+                       }
+                       else {
+                           v=((buf8[i]&0xff)-128)/256;
+                       }
+                       wav[j]=v;
+                   }
+                   return {wav:wav, len:len};
                },
                _LoadSample: function (voice, path2voices, callback) {
                    var url=path2voices+voice.file + ".wav";
                    fetch(url).then( res => {
                        return res.arrayBuffer();
                    }).then( buf => {
-                       var buf8=new Uint8Array(buf);
-                       var b=1;
-                       if(buf8[0x22]==0x10) {
-                           b=2;
-                       }
-                       var len=(buf8.length-0x2c)>>(b-1);
-                       var wav=new Float32Array(len);
-                       var v;
-                       for(var i=0x2c,j=0; j<len; i+=b,j++) {
-                           if(b==2) {
-                               v=((buf8[i+1]&0xff)<<8)+(buf8[i]&0xff);
-                               if(v&0x8000) v=v-65536;
-                               v=v/65536;
-                           }
-                           else {
-                               v=((buf8[i]&0xff)-128)/256;
-                           }
-                           wav[j]=v;
-                       }
-                       callback(voice, wav, len);
+                       var out=this.convertArrayBufferToFloat32Array(buf);
+                       callback(voice, out.wav, out.len);
                    });
-                   function _fetchfile(voice, url, callback) {
-                       fetch(url).then( res => {
-                           return res.arrayBuffer();
-                       }).then( buf => {
-                           var buf8=new Uint8Array(buf);
-                           var b=1;
-                           if(buf8[0x22]==0x10) {
-                               b=2;
-                           }
-                           var len=(buf8.length-0x2c)>>(b-1);
-                           var wav=new Float32Array(len);
-                           var v;
-                           for(var i=0x2c,j=0; j<len; i+=b,j++) {
-                               if(b==2) {
-                                   v=((buf8[i+1]&0xff)<<8)+(buf8[i]&0xff);
-                                   if(v&0x8000) v=v-65536;
-                                   v=v/65536;
-                               }
-                               else {
-                                   v=((buf8[i]&0xff)-128)/256;
-                               }
-                               wav[j]=v;
-                           }
-                           callback(voice, wav, len);
-                       });
-                   }
 
                }
            }; // var ToneGenerator=function(actx, path) {

@@ -1,0 +1,269 @@
+<!--
+  Copyright (c) 2016 Ryoya Kawai.  All rights reserved.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<dom-module id="x-recorder">
+  <template>
+    <style>
+     .ctrlbutton {
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       margin: 0px; padding: 4px;
+       width: 30px; height: 30px;
+       background-color:#ffffff;
+       outline: 0px #ffffff solid;
+       font-weight:bold;
+       width:100px;
+       box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+       transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+     }
+     .ctrlbutton:hover {
+       box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+     }
+     .ctrlbutton:active {
+       box-shadow: 0 0px 0px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+     }
+     .ctrlframe {
+       display:table;
+       margin:10px auto;
+     }
+     .record {
+       border-radius:50px;
+       background-color:#ffffff;
+       border: 0px solid #cfcfcf;
+       color: #ed1720/*D32F2F*/;
+       font-size:1.2em
+     }
+     .recording {
+       border-radius:10px;
+       background-color: #ed1720/*D32F2F*/;
+       border: 0px solid #cfcfcf;
+       color: #ffffff;
+       font-size:1.3em
+     }
+     .container {
+       padding:20px;
+       width:400px; height:320px;
+       background: #fff;
+       border:1px solid #eeeeee;
+       border-radius: 4px;
+       clear:both;
+       margin:0 auto;
+     }
+     .wavearea {
+       width:390px; height:280px;
+       margin:0px auto;
+     }
+     .clearboth { clear:both }
+    </style>
+    <div class="container">
+      <div id="wave" class="wavearea"><canvas id="wcanvas"></canvas></div>
+      <div class="ctrlframe"><button id="ctrl" class="ctrlbutton record">●</button></div>
+    </div> 
+   <div class="clearboth"></div>
+  </template>
+  <script>
+  Polymer({
+       is: "x-recorder",
+       properties: {
+           bufSize: {
+               type: Number,
+               value: 4096
+           }
+       },
+       ready: function() {
+           this.audioCtx=new AudioContext();
+           this.audioBuf=[];
+           this.stream=null;
+           this.analyser=null;
+           this.sp=null;
+           this.isRecording=false;
+           this.canvas=document.querySelector("#wcanvas");
+           this.canvas.width="390"; this.canvas.height="270";
+           this.cCtx=this.canvas.getContext("2d");
+           this.drawScale();
+
+           this.$["ctrl"].addEventListener("mousedown", toggleRec.bind(this));
+           function toggleRec(event) {
+               if(this.isRecording===false) {
+                   this.startRec.bind(this)();
+                   this.isRecording=true;
+                   event.target.innerHTML="■";
+                   event.target.className=
+                       event.target.className.replace(/ record/, "").trim()+ " recording";
+               } else {
+                   this.stopRec.bind(this)();
+                   this.isRecording=false;
+                   event.target.innerHTML="●";
+                   event.target.className=
+                       event.target.className.replace(/ recording/, "").trim() + " record";
+               }
+           }
+       },
+       drawScale: function() {
+           const w=this.canvas.width; const h=this.canvas.height;
+           this.cCtx.fillStyle="rgba(220, 220, 220, 0.4)";
+           this.cCtx.clearRect(0, 0, w, h);
+           this.cCtx.fillRect(0, 0, w, h);
+
+           this.cCtx.beginPath();
+           this.cCtx.strokeStyle="rgba(255, 255, 255, 1)";
+           this.cCtx.moveTo(0, h/2);
+           this.cCtx.lineTo(w, h/2);
+
+           const vLine=3;
+           this.cCtx.lineTo(i*w/vLine, h);
+           for(var i=1; i<vLine; i++) {
+               this.cCtx.moveTo(i*w/vLine, 0);
+               this.cCtx.lineTo(i*w/vLine, h);
+           }
+           this.cCtx.stroke();
+           this.cCtx.closePath();
+       },
+       drawRecordedWave: function(wave) {
+           const w=this.canvas.width, h=this.canvas.height;
+           const center={x:w/2, y:h/2};
+
+           this.drawScale();
+           this.cCtx.lineWidth=0.5;
+           //this.cCtx.strokeStyle="rgba(155, 155, 155, 1)";
+           //this.cCtx.strokeStyle="rgba(0,230,118,1)";// #00E676
+           this.cCtx.strokeStyle="rgba(62,179,112,1)";// #3EB370
+           this.cCtx.beginPath();
+           this.cCtx.moveTo(0, center.y);
+           const tick={x:w/(wave.data.length), y:h/(2.2*Math.ceil(wave.stat.max))};
+           for(var i=0; i<wave.data.length; i++) {
+               this.cCtx.lineTo(i*tick.x, wave.data[i]*tick.y+h/2);
+           }
+           this.cCtx.closePath();
+           this.cCtx.stroke();
+       },
+       drawRecordingLevel: function() {
+           const graphType="spectrum"; // "spectrum" "waveform"
+           const data = new Uint8Array(512);
+           const w=this.canvas.width, h=this.canvas.height;
+           const center={x:w/2, y:h/2};
+           const tick={x:w/256, y:h/(2.2*1.2)};
+           this.drawScale();
+
+           switch(graphType) {
+               case "spectrum":
+                   // Spectrum Data
+                   this.analyser.getByteFrequencyData(data);
+                   //this.cCtx.fillStyle = "rgba(204, 204, 204, 0.8)";
+                   //this.cCtx.fillStyle = "rgba(255,138,128, 1)"; // #FF8A80
+                   this.cCtx.fillStyle = "rgba(253,106,108, 1)"; // #FD6A6C
+                   for(var i = 0; i < 256; ++i) {
+                       this.cCtx.fillRect(i*tick.x, h - data[i], 1, data[i]);
+                   }
+                   this.cCtx.stroke();
+                   break;
+               case "waveform":
+                   // WaveForm Data
+                   this.analyser.getByteTimeDomainData(data);
+                   //this.cCtx.strokeStyle="rgba(155, 155, 155, 1)";
+                   this.cCtx.strokeStyle = "rgba(255,138,128, 1)"; // #FF8A80
+                   this.cCtx.moveTo(0, center.y);
+                   this.cCtx.beginPath();
+                   for(var i = 0; i < 256; ++i) {
+                       this.cCtx.lineTo(i*tick.x, data[i]+7);
+                   }
+                   this.cCtx.closePath();
+                   this.cCtx.stroke();
+                   break;
+           }
+
+           this.animationId=requestAnimationFrame(this.drawRecordingLevel.bind(this));
+       },
+       record: function(stream) {
+           this.analyser=this.audioCtx.createAnalyser();
+           this.stream=stream;
+           this.audioBuf=[];
+           const mediaStream=this.audioCtx.createMediaStreamSource(this.stream);
+           this.sp=this.audioCtx.createScriptProcessor(this.bufSize, 1, 1);
+           mediaStream.connect(this.analyser).connect(this.sp);
+           this.sp.onaudioprocess = process.bind(this);
+           function process(event) {
+               const data=event.inputBuffer.getChannelData(0);
+               const buf=new Float32Array(this.bufSize);
+               for(var i=0; i<this.bufSize; i++) {
+                   buf[i]=data[i];
+               }
+               this.audioBuf.push(buf);
+           };
+           this.sp.connect(this.audioCtx.destination);
+           this.drawRecordingLevel.bind(this)();
+       },
+       startRec: function() {  
+           if(this.isRecording===false) {
+               this.isRecording=true;
+               if(this.stream===null) {
+                   options={video:false, audio:true};
+                   navigator.getUserMedia(
+                       options,
+                       (stream) => { 
+                           this.record(stream); 
+                       },
+                       (msg) => { console.log("[err] ", msg); }
+                   );
+               } else {
+                   this.record(stream);
+               }
+           }
+       },
+       stopRec: function() {
+           if(this.isRecording===true) {
+               this.isRecording=false;
+               this.sp.disconnect();
+               if(this.stream!=null) {
+                   var tracks=this.stream.getTracks();
+                   for(var i=0; i<tracks.length; i++) tracks[i].stop();
+                   this.stream=null;
+               }
+               const buf=this.audioCtx.createBuffer(
+                   1, 
+                   this.audioBuf.length * this.bufSize, this.audioCtx.sampleRate);
+               const chData=buf.getChannelData(0);
+               var stat={min:999999, max:-999999};
+               for (var i = 0; i < this.audioBuf.length; i++) {
+                   for (var j = 0; j < this.bufSize; j++) {
+                       if(stat.min>this.audioBuf[i][j]) stat.min=this.audioBuf[i][j];
+                       if(stat.max<this.audioBuf[i][j]) stat.max=this.audioBuf[i][j];
+                       chData[i * this.bufSize + j] = this.audioBuf[i][j];
+                   }
+               }
+               this.data={raw: this.audioBuf, audioBuffer: buf, Float32Array: {stat: stat, data:chData} };
+               cancelAnimationFrame(this.animationId);
+               this.drawRecordedWave(this.data.Float32Array);
+               this.fire("record-stop");
+           }
+       },
+       getAudioBuffer: function() {
+           if(this.isRecording===false) {
+               /*
+               // test code whether recording is succeed
+               var src=this.audioCtx.createBufferSource();
+               src.buffer=this.data.buf;
+               src.connect(this.audioCtx.destination);
+               src.start();
+               */
+               return this.data;
+           } else {
+               console.log("[Still Recording]");
+           }
+       }
+   });
+  </script>
+</dom-module>
