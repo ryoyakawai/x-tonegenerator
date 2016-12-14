@@ -64,8 +64,9 @@
                "r":0.90, "pr":1, "gr":0 };
            voice.name=name;
            voice.noteno=60;
-           voice.len=float32Array.len;
-           voice.lp=0.8*float32Array.len;
+           console.log(float32Array.length);
+           voice.len=float32Array.length;
+           voice.lp=parseInt(0.2*voice.len);
            voice.wav=[];
            voice.wav=float32Array;
            this.tg.voices.push(voice);

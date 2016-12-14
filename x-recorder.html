@@ -43,12 +43,12 @@
        border-radius:50px;
        background-color:#ffffff;
        border: 0px solid #cfcfcf;
-       color: #D32F2F;
+       color: #ed1720/*D32F2F*/;
        font-size:1.2em
      }
      .recording {
        border-radius:10px;
-       background-color:#D32F2F;
+       background-color: #ed1720/*D32F2F*/;
        border: 0px solid #cfcfcf;
        color: #ffffff;
        font-size:1.3em
@@ -58,13 +58,13 @@
        width:400px; height:320px;
        background: #fff;
        border:1px solid #eeeeee;
-       border-radius: 2px;
+       border-radius: 4px;
        clear:both;
        margin:0 auto;
      }
      .wavearea {
-       width:380px; height:280px;
-       margin:5px auto;
+       width:390px; height:280px;
+       margin:0px auto;
      }
      .clearboth { clear:both }
     </style>
@@ -87,32 +87,37 @@
            this.audioCtx=new AudioContext();
            this.audioBuf=[];
            this.stream=null;
+           this.analyser=null;
            this.sp=null;
            this.isRecording=false;
            this.canvas=document.querySelector("#wcanvas");
            this.canvas.width="390"; this.canvas.height="270";
            this.cCtx=this.canvas.getContext("2d");
-           this.cCtx.fillStyle="rgba(220, 220, 220, 0.4)";
-           this.cCtx.fillRect(0, 0, 380, 280);
            this.drawScale();
 
-           this.$["ctrl"].addEventListener("mousedown", (event) => {
+           this.$["ctrl"].addEventListener("mousedown", toggleRec.bind(this));
+           function toggleRec(event) {
                if(this.isRecording===false) {
+                   this.startRec.bind(this)();
                    this.isRecording=true;
                    event.target.innerHTML="■";
                    event.target.className=
                        event.target.className.replace(/ record/, "").trim()+ " recording";
                } else {
+                   this.stopRec.bind(this)();
                    this.isRecording=false;
                    event.target.innerHTML="●";
                    event.target.className=
                        event.target.className.replace(/ recording/, "").trim() + " record";
                }
-           });
+           }
        },
        drawScale: function() {
            const w=this.canvas.width; const h=this.canvas.height;
-           this.cCtx.lineWidth=0.5;
+           this.cCtx.fillStyle="rgba(220, 220, 220, 0.4)";
+           this.cCtx.clearRect(0, 0, w, h);
+           this.cCtx.fillRect(0, 0, w, h);
+
            this.cCtx.beginPath();
            this.cCtx.strokeStyle="rgba(255, 255, 255, 1)";
            this.cCtx.moveTo(0, h/2);
@@ -127,26 +132,68 @@
            this.cCtx.stroke();
            this.cCtx.closePath();
        },
-       drawWave: function(wave) {
+       drawRecordedWave: function(wave) {
            const w=this.canvas.width, h=this.canvas.height;
            const center={x:w/2, y:h/2};
 
+           this.drawScale();
            this.cCtx.lineWidth=0.5;
-           this.cCtx.strokeStyle="rgba(155, 155, 155, 1)";
+           //this.cCtx.strokeStyle="rgba(155, 155, 155, 1)";
+           //this.cCtx.strokeStyle="rgba(0,230,118,1)";// #00E676
+           this.cCtx.strokeStyle="rgba(62,179,112,1)";// #3EB370
            this.cCtx.beginPath();
            this.cCtx.moveTo(0, center.y);
-           const tick={x:w/wave.data.length, y:h/(2.2*Math.ceil(wave.stat.max))};
+           const tick={x:w/(wave.data.length), y:h/(2.2*Math.ceil(wave.stat.max))};
            for(var i=0; i<wave.data.length; i++) {
-               this.cCtx.lineTo(i*tick.x-10, wave.data[i]*tick.y+h/2);
+               this.cCtx.lineTo(i*tick.x, wave.data[i]*tick.y+h/2);
            }
-           this.cCtx.stroke();
            this.cCtx.closePath();
+           this.cCtx.stroke();
+       },
+       drawRecordingLevel: function() {
+           const graphType="spectrum"; // "spectrum" "waveform"
+           const data = new Uint8Array(512);
+           const w=this.canvas.width, h=this.canvas.height;
+           const center={x:w/2, y:h/2};
+           const tick={x:w/256, y:h/(2.2*1.2)};
+           this.drawScale();
+
+           switch(graphType) {
+               case "spectrum":
+                   // Spectrum Data
+                   this.analyser.getByteFrequencyData(data);
+                   //this.cCtx.fillStyle = "rgba(204, 204, 204, 0.8)";
+                   //this.cCtx.fillStyle = "rgba(255,138,128, 1)"; // #FF8A80
+                   this.cCtx.fillStyle = "rgba(253,106,108, 1)"; // #FD6A6C
+                   for(var i = 0; i < 256; ++i) {
+                       this.cCtx.fillRect(i*tick.x, h - data[i], 1, data[i]);
+                   }
+                   this.cCtx.stroke();
+                   break;
+               case "waveform":
+                   // WaveForm Data
+                   this.analyser.getByteTimeDomainData(data);
+                   //this.cCtx.strokeStyle="rgba(155, 155, 155, 1)";
+                   this.cCtx.strokeStyle = "rgba(255,138,128, 1)"; // #FF8A80
+                   this.cCtx.moveTo(0, center.y);
+                   this.cCtx.beginPath();
+                   for(var i = 0; i < 256; ++i) {
+                       this.cCtx.lineTo(i*tick.x, data[i]+7);
+                   }
+                   this.cCtx.closePath();
+                   this.cCtx.stroke();
+                   break;
+           }
+
+           this.animationId=requestAnimationFrame(this.drawRecordingLevel.bind(this));
        },
        record: function(stream) {
+           this.analyser=this.audioCtx.createAnalyser();
            this.stream=stream;
+           this.audioBuf=[];
            const mediaStream=this.audioCtx.createMediaStreamSource(this.stream);
            this.sp=this.audioCtx.createScriptProcessor(this.bufSize, 1, 1);
-           mediaStream.connect(this.sp);
+           mediaStream.connect(this.analyser).connect(this.sp);
            this.sp.onaudioprocess = process.bind(this);
            function process(event) {
                const data=event.inputBuffer.getChannelData(0);
@@ -157,15 +204,18 @@
                this.audioBuf.push(buf);
            };
            this.sp.connect(this.audioCtx.destination);
+           this.drawRecordingLevel.bind(this)();
        },
-       startRec: function() {
+       startRec: function() {  
            if(this.isRecording===false) {
                this.isRecording=true;
                if(this.stream===null) {
                    options={video:false, audio:true};
                    navigator.getUserMedia(
                        options,
-                       (stream) => { this.record(stream); },
+                       (stream) => { 
+                           this.record(stream); 
+                       },
                        (msg) => { console.log("[err] ", msg); }
                    );
                } else {
@@ -195,12 +245,14 @@
                    }
                }
                this.data={raw: this.audioBuf, audioBuffer: buf, Float32Array: {stat: stat, data:chData} };
-               this.drawWave(this.data.Float32Array);
+               cancelAnimationFrame(this.animationId);
+               this.drawRecordedWave(this.data.Float32Array);
            }
        },
        getAudioBuffer: function() {
            if(this.isRecording===false) {
                /*
+               // test code whether recording is succeed
                var src=this.audioCtx.createBufferSource();
                src.buffer=this.data.buf;
                src.connect(this.audioCtx.destination);
