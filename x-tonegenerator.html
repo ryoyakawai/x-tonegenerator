@@ -41,7 +41,6 @@
        setVoice: function(ch, voiceName) {
            var voiceIdx=0;
            for(var i=0; i<this.tg.voices.length; i++) {
-               console.log(i, this.tg.voices[i].name, voiceName, this.tg.voices[i].name==voiceName);
                if(this.tg.voices[i].name==voiceName) {
                    voiceIdx=i;
                    break;
@@ -64,7 +63,6 @@
                "r":0.90, "pr":1, "gr":0 };
            voice.name=name;
            voice.noteno=60;
-           console.log(float32Array.length);
            voice.len=float32Array.length;
            voice.lp=parseInt(0.2*voice.len);
            voice.wav=[];
